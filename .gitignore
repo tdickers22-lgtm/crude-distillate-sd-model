@@ -1,0 +1,5 @@
+.env
+*.key
+data/eia_live_cache.csv
+__pycache__/
+.ipynb_checkpoints/
