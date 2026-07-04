@@ -172,3 +172,13 @@ test (million-scale stocks < ~700 vs thousand-scale > ~3,000). Price series
 are never scaled. VERIFY LOCALLY on the first live pull: the fetcher prints
 one "normalized" line per volume series; if none appear, the API convention
 changed and this decision needs revisiting.
+
+**25. QA warnings are scoped to the trailing 3 years.** The live API returns
+history to 1982 regardless of the `start` parameter (the seriesid compat route
+ignores it — observed on the first live pull). Four decades of history means
+1982-83 publication gaps, series that begin later (Cushing 2004, ULSD 2006,
+PADD stocks 1990s, crude exports 2016), and pre-shale levels outside modern
+sanity bounds — all historical facts, not data problems. Continuity / missing /
+range checks therefore run on the trailing 156 weeks so a warning always means
+"something is wrong NOW"; older-history NaN counts print as one info line.
+Full history is retained for the seasonal frames and the backtest.

@@ -1,7 +1,7 @@
 # Crude & Distillate — Backtest Report (2026-07-04)
 
 - **DATA MODE: LIVE (EIA API)   |   2283 weeks   |   1982-08-20 -> 2026-06-26**
-- QA: 8 warning(s)
+- QA: PASS -- all checks clean
 - notebook cell errors: 0
 - live volume normalization: 16 series scaled thousand→million bbl ✓
 - alignment check PASS  |  usable overlapping weeks (study a, h=4): 517   signals 2016-07-01 -> 2026-05-22 (each with a complete 4-wk forward window)
