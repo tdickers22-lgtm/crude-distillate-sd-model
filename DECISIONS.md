@@ -7,8 +7,8 @@ data layer — live API → cached pull → bundled synthetic sample — and thi
 run uses the sample tier. The sample is calibrated to realistic history (the shale
 ramp, the 2020 COVID shock, post-2023 export growth) and its 2026 endpoint is aligned
 to publicly reported late-June-2026 EIA prints (crude ≈409–412 Mb, ~7% below the
-5-yr average; distillate ≈106–107 Mb, ~10% below; Cushing ≈19 Mb; refinery runs
-≈17.1 Mb/d; production ≈13.7 Mb/d). Everything synthetic is stamped as such on the
+5-yr average; distillate ≈106–108 Mb, ~9–10% below; Cushing ≈19 Mb; refinery runs
+≈16.6–17.1 Mb/d; production ≈13.7 Mb/d). Everything synthetic is stamped as such on the
 banner, every chart, and the PDF. Paste a key and Run All to flip to live data —
 the analytics are unchanged.
 
@@ -60,3 +60,115 @@ Phase-5 artifact refreshes automatically on every weekly run.
 **12. Delivery format.** The spec's deliverable is a notebook plus a 1-page summary:
 delivered as an *executed* .ipynb (all outputs visible without running anything), the
 PDF one-pager, standalone PNGs of every chart, and this log — bundled in a zip.
+
+---
+
+## Extension build — regional layer, signal backtest, PADD map
+
+**13. New series IDs — VERIFY LOCALLY.** The build environment could not reach
+`api.eia.gov`, so all seven new IDs are best guesses pending a live check:
+prices `PET.RWTC.W` ($/bbl) and `PET.EER_EPD2DXL0_PF4_Y35NY_DPG.W` ($/gal);
+PADD distillate stocks `PET.WDISTP11.W` / `WDISTP21` / `WDISTP31` / `WDISTP41`
+/ `WDISTP51` (Mb). The fetch layer distinguishes core vs extension series: a
+failing CORE series still trips the tier fallback (the balance sheet is
+meaningless without it), while a failing EXTENSION series prints the exact full
+v1 identifier and is skipped — dependent sections switch off gracefully rather
+than crash.
+
+**14. ULSD history fallback.** NY Harbor ULSD spot starts around mid-2006 — long
+enough for a 10-year sample — but if the live pull disagrees, the documented
+fallback is the NY Harbor No. 2 heating oil spot (`PET.EER_EPD2F_PF4_Y35NY_DPG.W`),
+the pre-ULSD-era continuation of the same marker. Swap the ID in the catalog and
+note the splice date here.
+
+**15. Backtest signal in % of norm, not Mb.** The deviation is computed both
+ways, but the backtest runs on **% of the 5-yr norm**: a 10 Mb distillate
+deficit was a different animal in 2016 (≈150 Mb base) than in 2026 (≈105 Mb).
+Percent is scale-free across the decade; Mb is kept for the tables and prose.
+
+**16. One-week publication lag.** WPSR data for the week ending Friday *t* is
+published the following Wednesday. The backtest pairs the week-*t* deviation
+with the price change from *t+1* to *t+1+h* (`shift(-(1+h)) − shift(-1)`),
+enforced by an assertion. Skipping the lag would assume trades placed two
+business days before the number existed. Residual caveat the assertion cannot
+catch: the price series are weekly *averages*, so the week-(t+1) entry leg
+partially predates the Wednesday release — a pro-thesis bias. The auto-summary
+therefore also reports a conservative t+2-entry variant (the first fully
+post-release weekly average).
+
+**17. Ex-COVID robustness cut.** Mar 2020–Feb 2021 is reported separately and
+excluded in a robustness pass: the demand collapse and whipsaw produced
+deviation and price moves an order of magnitude outside the rest of the sample,
+enough for a single year to dominate a decade of correlation. The exclusion is
+**window-overlap aware and horizon-dependent**: a row is dropped when its
+forward window [t+1, t+1+h] touches the COVID period, not merely when its
+signal date does — filtering on signal date alone would leave Jan/Feb-2020
+signals whose forward returns contain the March crash inside the "ex-COVID"
+sample. Ex-COVID sign agreement is reported per study (one study flipping sign
+is exactly the robustness fact that must not be averaged away). Both cuts are
+shown; neither is hidden.
+
+**18. Crack formula and its unit trap.** Diesel crack ($/bbl) = ULSD ($/gal)
+× 42 − WTI ($/bbl). The gallons→barrels ×42 is the same class of trap as
+Mb vs Mb/d; it is commented at the construction site. Prices never meet the
+×7 flow-to-stock conversion.
+
+**19. PADD non-additivity to the balance.** PADD stocks are *components* of the
+national total (they sum to `WDISTUS1`; QA checks this) and enter the model as
+a **view layer only** — never as extra balance rows, which would double-count.
+Their seasonal norms reuse the existing `seasonal_series()` / `deviation()`
+functions: one seasonal implementation, no fork.
+
+**20. Map implementation and fallback.** Plotly Express choropleth with
+`locationmode="USA-states"` (built-in geometry, no shapefile/geojson downloads —
+sandbox-safe), the standard EIA state→PADD dict embedded in the notebook,
+diverging RdBu scale centered at 0 (red = tight). Any failure falls back to a
+matplotlib bar chart of the five deviations, so Run All can never break on the
+map. The interactive figure uses the lightweight `plotly_mimetype` renderer
+(no embedded plotly.js bundle). The PNG is embedded in the PDF only if the
+local kaleido/plotly pairing supports `write_image`; when it does not (as in
+the sandbox), a static bar-chart companion is rendered anyway so GitHub's
+static viewer and `charts/` still carry the regional picture.
+
+**21. Synthetic prices embed a lagged response — by design, and stamped.** The
+sample generator gives WTI and the crack a mild inventory→price response
+(deviation vs a trailing 52-wk mean, shifted +6 weeks, buried under dominant
+AR(1) noise and realistic price-level swings). Purpose: the backtest section
+must demonstrably *work* end-to-end without credentials. The response is weak
+by design, so sample-run verdicts can legitimately come out MIXED or negative —
+which exercises the honest-negative reporting path. Synthetic backtest numbers
+validate the pipeline, never the thesis; the notebook and the auto-block below
+say so explicitly whenever DATA_MODE is SAMPLE.
+
+**22. Backtest sample depth vs START_DATE.** With `START_DATE = 2015-01-01`,
+the 5-yr seasonal warm-up means deviations begin in 2020, so the "last 10
+years" evaluation effectively starts there (~6.5y). For the full 10-year
+window on live data, set `START_DATE = "2009-01-01"` before pulling (weekly
+PADD stocks and both price series reach back far enough). Documented in the
+run-locally checklist rather than silently changing the existing model's
+default history depth.
+
+**23. Tercile hit-rate definition.** Buckets are signal terciles within each
+evaluation sample ("tight" = tightest third of the period — relative, robust to
+level shifts). Hit rate is sign agreement: tight → forward move > 0, loose →
+forward move < 0; undefined for the neutral bucket, shown as NaN. Overlapping
+forward windows mean the effective sample is roughly n/h — stated wherever the
+tables appear.
+
+<!-- BACKTEST:BEGIN -->
+**B. Backtest result (auto-written by the notebook; SAMPLE (synthetic, calibrated to realistic levels) mode, run 2026-07-04).** Signals 2020-01-03 -> 2026-06-26, of which 334 have a complete 4-wk forward window (last usable: 2026-05-22); signal lagged 1 wk for WPSR publication: study (a) distillate %-deviation vs forward diesel crack shows r = -0.07 (4w) / +0.01 (8w); the tightest tercile of weeks preceded avg +0.08 $/bbl 4-wk crack moves with a 56% hit rate, vs +0.28 $/bbl for the loosest tercile -- MIXED (3/6 directional checks). Study (b) crude %-deviation vs forward WTI shows r = +0.25 (4w) / +0.36 (8w) -- NOT SUPPORTED (1/6). Ex-COVID (windows overlapping Mar-20..Feb-21 removed, per horizon): study (a) same direction; study (b) sign FLIPS at 4w,8w. Conservative t+2-entry check (4w): r = -0.04 (a) / +0.29 (b). Caveats: overlapping windows mean the effective sample is ~n/h (334//4 = 83 independent 4-wk moves), so treat correlations as descriptive, not as t-stats; the rolling-correlation chart shows the relationship is regime-dependent; and deviations only begin 5 yrs after START_DATE (set START_DATE=2009 locally for the full 10-yr window).  IMPORTANT: this run uses SYNTHETIC sample data whose generator embeds a mild lagged inventory->price response by construction -- these numbers validate the pipeline, NOT the thesis. Only live-data results count.
+<!-- BACKTEST:END -->
+
+**24. Mb means MILLION barrels; live volumes are normalized ÷1000.** The
+project's original gloss ("Mb = thousand barrels" — repeated in the extension
+spec) contradicted its own data: every value in the model, the sample
+calibration, the sanity ranges and the PDF (crude ≈409, distillate ≈107,
+production ≈13.7/d) is in *million* barrels, while EIA's API serves these
+series in *thousand* barrels (units `MBBL` / `MBBL/D`, e.g. crude stocks
+≈409,000). The symbol `Mb` is kept but defined correctly as million barrels
+everywhere, and the fetch layer normalizes volume series ÷1000 on the way in —
+primary check the API's own units string, fallback an unmistakable magnitude
+test (million-scale stocks < ~700 vs thousand-scale > ~3,000). Price series
+are never scaled. VERIFY LOCALLY on the first live pull: the fetcher prints
+one "normalized" line per volume series; if none appear, the API convention
+changed and this decision needs revisiting.
