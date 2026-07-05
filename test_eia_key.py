@@ -1,4 +1,4 @@
-"""Standalone check of the EIA API key AND all 18 series IDs (incl. the 7
+"""Standalone check of the EIA API key AND all 22 series IDs (incl. the 7
 extension IDs flagged VERIFY LOCALLY). Run: python3 test_eia_key.py
 Reads EIA_API_KEY from .env in the current folder (same as the notebook).
 
@@ -24,7 +24,9 @@ CORE = ["WCRFPUS2", "WCEIMUS2", "WCREXUS2", "WCRRIUS2", "WCESTUS1",
         "WDIRPUS2", "WDIIMUS2", "WDIEXUS2", "WDIUPUS2", "WDISTUS1"]
 EXT = ["WDISTP11", "WDISTP21", "WDISTP31", "WDISTP41", "WDISTP51",   # PADD stocks (Mb)
        "RWTC",                                                       # WTI spot ($/bbl)
-       "EER_EPD2DXL0_PF4_Y35NY_DPG"]                                 # NYH ULSD ($/gal)
+       "EER_EPD2DXL0_PF4_Y35NY_DPG",                                 # NYH ULSD ($/gal)
+       "RCLC1", "RCLC2",                                             # WTI futures M1/M2 ($/bbl)
+       "EER_EPD2F_PE1_Y35NY_DPG", "EER_EPD2F_PE2_Y35NY_DPG"]         # HO futures M1/M2 ($/gal)
 
 fails = []
 for sid in CORE + EXT:
@@ -56,4 +58,4 @@ if fails:
     for f in fails:
         print("  ", f)
 else:
-    print("All 18 series verified. Run the notebook to refresh the live cache.")
+    print("All 22 series verified. Run the notebook to refresh the live cache.")

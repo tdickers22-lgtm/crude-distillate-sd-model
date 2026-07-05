@@ -182,3 +182,50 @@ sanity bounds — all historical facts, not data problems. Continuity / missing 
 range checks therefore run on the trailing 156 weeks so a warning always means
 "something is wrong NOW"; older-history NaN counts print as one info line.
 Full history is retained for the seasonal frames and the backtest.
+
+**26. Predictive Lab and the futures layer.** The level-signal backtest (block
+B) came back negative, as efficient-market logic predicts for public data. The
+lab therefore moves the search to where an edge is structurally possible:
+expectation-relative signals (4-wk deviation change, days-of-supply deviation,
+below-range and Cushing tail dummies), term-structure targets (theory of
+storage ties inventories to the CURVE, not flat price), an analog-week kNN
+playbook, a walk-forward validation of the inventory projection itself, and
+one ex-ante composite rule. Four futures series added — `PET.RCLC1.W`,
+`PET.RCLC2.W` ($/bbl) and `PET.EER_EPD2F_PE1_Y35NY_DPG.W` / `PE2` ($/gal,
+×42 to $/bbl for spreads) — best guesses, VERIFY LOCALLY like the rest.
+
+**27. Lab methodology guardrails.** Everything honors the one-week publication
+lag. Walk-forward pieces never touch post-origin data: the projection
+validation slices the frame to each origin and REBUILDS the balance there
+(using the notebook's global balance frames would leak); analog pools end 52
+weeks before each test origin; composite-rule z-scores are expanding with a
+156-week minimum; strategy P&L uses weekly marks (no overlapping-window
+inflation) and is labeled costless/descriptive. Dummies with <15 active weeks
+are blanked in the matrix.
+
+**28. Synthetic futures couple to the deviation proxies.** Sample-tier M1−M2
+spreads respond to the lagged inventory-deviation proxies (theory-of-storage
+texture) plus dominant noise — so lab machinery demonstrably works without
+credentials, and, as with #21, synthetic lab numbers validate the pipeline
+only. The auto-block below is stamped with the data mode.
+
+<!-- LAB:BEGIN -->
+**C. Predictive-lab result (auto-written; LIVE (EIA API) mode, run 2026-07-04).** PREDICTIVE LAB VERDICT (LIVE data, 522 wks): (1) Signal-target map -- strongest links: Cushing tail -> WTI M1-M2 4w r=-0.19; crude chg 4w -> WTI M1-M2 8w r=+0.18; Cushing tail -> WTI M1-M2 8w r=-0.18. (2) Curve vs fundamentals (as of 2024-04-05 [HISTORICAL -- futures feed ends there]): HO structure was 0.7 sd RICHER than distillate tightness implied. (3) Analog skill check (5y walk-forward, n=103): sign hit rate 43% vs 55% always-majority baseline -- no edge over base rate. (4) Flow-integration projection vs anchored-seasonal baseline (4w): crude -27%, distillate -25% (walk-forward, n=151) -- the anchored seasonal path is the better point forecaster; the flow engine's value is scenario DELTAS (shared errors cancel between scenario and baseline). (5) Tight+tightening rule on HO M1-M2 spread: total -26.9 $/bbl over 404 wks (127 in market, 43% win rate, max drawdown 32.0 $/bbl). Read (1) with the usual overlap caveat (effective n ~ n/h); the projection skill in (4) is the model's cleanest demonstrated forecasting value.
+<!-- LAB:END -->
+
+**29. Projection validation verdict — flow integration is a scenario engine,
+not a point forecaster; and the futures feed is discontinued.** The lab's
+walk-forward test (151 origins, 6 yrs, h = 4/8/12) shows the Phase-4
+flow-integration path is beaten by the trivial "anchored seasonal" ruler
+(current level + 5-yr-avg seasonal delta) at every horizon: skill −25% to
+−88%. A recalibration grid — momentum decay 0.6–0.85, adjustment carry 0/0.5/1,
+flow/seasonal blends w = 0.15/0.3/0.5 — found nothing that beats the anchor
+(best: w = 0.15 at +0.1%, i.e. noise). Interpretation: flow-forecast errors
+compound ×7×h into stock space, while stock levels are well anchored by
+seasonality. Decision: the projection chart now draws the anchored path as the
+validated baseline; the flow engine is retained as the **scenario** machinery,
+where shocked-vs-baseline *deltas* cancel the shared error. Separately, EIA
+discontinued republishing NYMEX futures (weekly AND daily end 2024-04-05,
+licensing), so M1−M2 spread studies are an 18-year historical evaluation, not
+a live gauge; QA reports those NaNs as an upstream fact, and a live curve
+requires an external (CME) feed — a documented integration point, not a bug.

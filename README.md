@@ -13,7 +13,7 @@ regional story, draws a PADD choropleth map,** and writes a one-page market-view
 2. Get a free EIA API key (instant): https://www.eia.gov/opendata
 3. Open the notebook, paste the key into `EIA_API_KEY` in the config cell
    (or put `EIA_API_KEY=...` in a gitignored `.env`), and **Run All**.
-4. First live run: `python3 test_eia_key.py` checks all **18 series IDs** and names
+4. First live run: `python3 test_eia_key.py` checks all **22 series IDs** and names
    any that fail — the 7 extension IDs (PADD stocks + prices) are best guesses
    until verified (see the **VERIFY LOCALLY** block in the notebook and `DECISIONS.md` #13).
 
@@ -53,8 +53,13 @@ skipped — the dependent sections switch off gracefully instead of crashing. Ol
     (also appended to `DECISIONS.md`) — a clean negative result is a valid outcome
   - **PADD map** — plotly choropleth of distillate deviation by PADD (red = tight),
     with a bar-chart fallback so Run All can never break on the map
+  - **Predictive Lab** — signal×target matrix (incl. M1−M2 spread targets from the
+    futures layer), curve-vs-fundamentals divergence gauge, kNN analog playbook with
+    a walk-forward skill check, walk-forward validation of the inventory projection
+    vs a seasonal baseline, and one ex-ante composite rule with weekly-mark P&L —
+    all publication-lag- and lookahead-clean (`DECISIONS.md` #26-28)
 
-## Series (18)
+## Series (22)
 
 | Group | Bare code | Full v1 id used by the API layer | Unit | Role |
 |---|---|---|---|---|
@@ -76,6 +81,10 @@ skipped — the dependent sections switch off gracefully instead of crashing. Ol
 | Regional* | `WDISTP51` | `PET.WDISTP51.W` | Mb | PADD 5 distillate (view layer) |
 | Price* | `RWTC` | `PET.RWTC.W` | $/bbl | WTI Cushing spot |
 | Price* | `EER_EPD2DXL0_PF4_Y35NY_DPG` | `PET.EER_EPD2DXL0_PF4_Y35NY_DPG.W` | $/gal | NYH ULSD spot |
+| Price* | `RCLC1` | `PET.RCLC1.W` | $/bbl | WTI futures M1 |
+| Price* | `RCLC2` | `PET.RCLC2.W` | $/bbl | WTI futures M2 |
+| Price* | `EER_EPD2F_PE1_Y35NY_DPG` | `PET.EER_EPD2F_PE1_Y35NY_DPG.W` | $/gal | NYH HO/ULSD futures M1 |
+| Price* | `EER_EPD2F_PE2_Y35NY_DPG` | `PET.EER_EPD2F_PE2_Y35NY_DPG.W` | $/gal | NYH HO/ULSD futures M2 |
 
 \* extension series — **VERIFY LOCALLY** (built without API access; IDs are best
 guesses; failures degrade gracefully). PADD stocks are components of `WDISTUS1`
