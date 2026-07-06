@@ -1,5 +1,9 @@
 .env
 *.key
 data/eia_live_cache.csv
+data/futures_live_cache.csv
 __pycache__/
 .ipynb_checkpoints/
+.virtual_documents/
+anaconda_projects/
+Untitled.ipynb

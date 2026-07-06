@@ -156,7 +156,7 @@ forward windows mean the effective sample is roughly n/h — stated wherever the
 tables appear.
 
 <!-- BACKTEST:BEGIN -->
-**B. Backtest result (auto-written by the notebook; LIVE (EIA API) mode, run 2026-07-04).** Signals 2016-07-01 -> 2026-06-26, of which 517 have a complete 4-wk forward window (last usable: 2026-05-22); signal lagged 1 wk for WPSR publication: study (a) distillate %-deviation vs forward diesel crack shows r = +0.02 (4w) / +0.01 (8w); the tightest tercile of weeks preceded avg +0.25 $/bbl 4-wk crack moves with a 52% hit rate, vs +0.55 $/bbl for the loosest tercile -- NOT SUPPORTED (2/6 directional checks). Study (b) crude %-deviation vs forward WTI shows r = +0.06 (4w) / +0.07 (8w) -- NOT SUPPORTED (0/6). Ex-COVID (windows overlapping Mar-20..Feb-21 removed, per horizon): study (a) same direction; study (b) same direction. Conservative t+2-entry check (4w): r = +0.02 (a) / +0.06 (b). Caveats: overlapping windows mean the effective sample is ~n/h (517//4 = 129 independent 4-wk moves), so treat correlations as descriptive, not as t-stats; the rolling-correlation chart shows the relationship is regime-dependent; and deviations only begin 5 yrs after START_DATE (set START_DATE=2009 locally for the full 10-yr window).
+**B. Backtest result (auto-written by the notebook; LIVE (EIA API) mode, run 2026-07-05).** Signals 2016-07-01 -> 2026-06-26, of which 517 have a complete 4-wk forward window (last usable: 2026-05-22); signal lagged 1 wk for WPSR publication: study (a) distillate %-deviation vs forward diesel crack shows r = +0.02 (4w) / +0.01 (8w); the tightest tercile of weeks preceded avg +0.25 $/bbl 4-wk crack moves with a 52% hit rate, vs +0.55 $/bbl for the loosest tercile -- NOT SUPPORTED (2/6 directional checks). Study (b) crude %-deviation vs forward WTI shows r = +0.06 (4w) / +0.07 (8w) -- NOT SUPPORTED (0/6). Ex-COVID (windows overlapping Mar-20..Feb-21 removed, per horizon): study (a) same direction; study (b) same direction. Conservative t+2-entry check (4w): r = +0.02 (a) / +0.06 (b). Caveats: overlapping windows mean the effective sample is ~n/h (517//4 = 129 independent 4-wk moves), so treat correlations as descriptive, not as t-stats; the rolling-correlation chart shows the relationship is regime-dependent; and deviations only begin 5 yrs after START_DATE (set START_DATE=2009 locally for the full 10-yr window).
 <!-- BACKTEST:END -->
 
 **24. Mb means MILLION barrels; live volumes are normalized ÷1000.** The
@@ -210,7 +210,7 @@ credentials, and, as with #21, synthetic lab numbers validate the pipeline
 only. The auto-block below is stamped with the data mode.
 
 <!-- LAB:BEGIN -->
-**C. Predictive-lab result (auto-written; LIVE (EIA API) mode, run 2026-07-04).** PREDICTIVE LAB VERDICT (LIVE data, 522 wks): (1) Signal-target map -- strongest links: Cushing tail -> WTI M1-M2 4w r=-0.19; crude chg 4w -> WTI M1-M2 8w r=+0.18; Cushing tail -> WTI M1-M2 8w r=-0.18. (2) Curve vs fundamentals (as of 2024-04-05 [HISTORICAL -- futures feed ends there]): HO structure was 0.7 sd RICHER than distillate tightness implied. (3) Analog skill check (5y walk-forward, n=103): sign hit rate 43% vs 55% always-majority baseline -- no edge over base rate. (4) Flow-integration projection vs anchored-seasonal baseline (4w): crude -27%, distillate -25% (walk-forward, n=151) -- the anchored seasonal path is the better point forecaster; the flow engine's value is scenario DELTAS (shared errors cancel between scenario and baseline). (5) Tight+tightening rule on HO M1-M2 spread: total -26.9 $/bbl over 404 wks (127 in market, 43% win rate, max drawdown 32.0 $/bbl). Read (1) with the usual overlap caveat (effective n ~ n/h); the projection skill in (4) is the model's cleanest demonstrated forecasting value.
+**C. Predictive-lab result (auto-written; LIVE (EIA API) mode, run 2026-07-05).** PREDICTIVE LAB VERDICT (LIVE data, 522 wks): (1) Signal-target map -- strongest links: Cushing tail -> WTI M1-M2 4w r=-0.19; crude chg 4w -> WTI M1-M2 8w r=+0.18; Cushing tail -> WTI M1-M2 8w r=-0.18. (2) Curve vs fundamentals (as of 2026-06-26, live): HO structure was 1.5 sd RICHER than distillate tightness implied. (3) Analog skill check (5y walk-forward, n=103): sign hit rate 43% vs 55% always-majority baseline -- no edge over base rate. (4) Flow-integration projection vs anchored-seasonal baseline (4w): crude -27%, distillate -25% (walk-forward, n=151) -- the anchored seasonal path is the better point forecaster; the flow engine's value is scenario DELTAS (shared errors cancel between scenario and baseline). (5) Tight+tightening rule on HO M1-M2 spread: total -25.8 $/bbl over 405 wks (128 in market, 43% win rate, max drawdown 32.0 $/bbl). Read (1) with the usual overlap caveat (effective n ~ n/h); the projection skill in (4) is the model's cleanest demonstrated forecasting value.
 <!-- LAB:END -->
 
 **29. Projection validation verdict — flow integration is a scenario engine,
@@ -229,3 +229,21 @@ discontinued republishing NYMEX futures (weekly AND daily end 2024-04-05,
 licensing), so M1−M2 spread studies are an 18-year historical evaluation, not
 a live gauge; QA reports those NaNs as an upstream fact, and a live curve
 requires an external (CME) feed — a documented integration point, not a bug.
+
+**30. External live curve feed wired (Yahoo Finance) + PADD-map PNG export
+fixed.** Closing the #29 integration point: a cell after `load_data` refills the
+discontinued futures columns from a free public feed — continuous fronts `CL=F`
+/`HO=F` give M1 across the whole 2024→now gap, and the current front-two
+contracts (selected by an expiry-window roll, not a price-match test, so it is
+volatility-proof) give the live M1−M2 term structure. Splice is additive and
+fills only the EIA gap (real pre-2024 history is preserved) and only in
+LIVE/CACHED mode; no `yfinance`/no network → columns stay as EIA left them and
+every dependent section degrades exactly as before (self-containment, #11,
+intact). Honest limit: the source drops EXPIRED contracts, so the 2024-25 spread
+*history* can't be freely rebuilt — only M1 (full) + current structure (last
+roll window); the spread backtest still runs on EIA's real pre-2024 data. The
+divergence gauge (Study 2) whose rolling z can't span the gap now reports a live
+reading by z-scoring the current spread against full history. Separately, the
+PADD-map PNG export needed `plotly>=6.1.1` to pair with the installed kaleido
+1.x (an older plotly-5 + kaleido-1 pairing silently skipped `write_image`, so
+the map never embedded in the PDF); it now exports and embeds.

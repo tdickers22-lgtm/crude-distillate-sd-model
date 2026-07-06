@@ -8,8 +8,8 @@ regional story, draws a PADD choropleth map,** and writes a one-page market-view
 
 ## Quick start
 
-1. Install dependencies: `pip install pandas numpy matplotlib requests reportlab pillow plotly jupyter`
-   (optional, for embedding the PADD map PNG in the PDF: a compatible `plotly` + `kaleido` pair)
+1. Install dependencies: `pip install pandas numpy matplotlib requests reportlab pillow "plotly>=6.1.1" kaleido yfinance jupyter`
+   (`yfinance` powers the live futures curve; `plotly>=6.1.1` paired with `kaleido` is what makes the PADD-map PNG embed in the PDF — an older plotly 5 + kaleido 1.x pair silently skips the PNG)
 2. Get a free EIA API key (instant): https://www.eia.gov/opendata
 3. Open the notebook, paste the key into `EIA_API_KEY` in the config cell
    (or put `EIA_API_KEY=...` in a gitignored `.env`), and **Run All**.
@@ -90,6 +90,16 @@ skipped — the dependent sections switch off gracefully instead of crashing. Ol
 guesses; failures degrade gracefully). PADD stocks are components of `WDISTUS1`
 and are never added to the balance. Prices are never volumes: the ×7 Mb/d→Mb
 conversion must never touch them; the crack's gal→bbl factor is ×42.
+
+> **Live futures curve.** EIA discontinued the four NYMEX futures series
+> (`RCLC1/2`, HO `M1/M2`) in Apr-2024, so they freeze there in a live pull. The
+> data layer now refreshes them from **Yahoo Finance** (`CL=F`/`HO=F` continuous
+> fronts for M1 across the whole gap, plus the current front-two contracts for the
+> live M1−M2 term structure), so the structure layer, divergence gauge and market
+> view stay current. It's fully optional: without `yfinance` or a network the
+> columns stay as EIA left them and every dependent section degrades as before.
+> The deep 2024-25 spread *history* isn't free to rebuild (the source drops expired
+> contracts), so the spread backtest still runs on EIA's real pre-2024 history.
 
 **Units:** `Mb` = **million** barrels and `Mb/d` = million barrels/day
 throughout. EIA's API delivers these series in *thousand* barrels (`MBBL`), so
